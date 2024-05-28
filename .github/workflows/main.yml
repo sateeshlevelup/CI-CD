@@ -1,0 +1,27 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+    - name: Copy files to EC2
+      run: |
+        scp -o StrictHostKeyChecking=no -r * ec2-54-91-61-10.compute-1.amazonaws.com:/var/www/html/
+
+    - name: Restart Nginx
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@ec2-54-91-61-10.compute-1.amazonaws.com 'sudo systemctl restart nginx'
