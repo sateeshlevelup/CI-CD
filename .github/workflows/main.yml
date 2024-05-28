@@ -22,6 +22,4 @@ jobs:
       run: |
         scp -o StrictHostKeyChecking=no -r * ec2-54-91-61-10.compute-1.amazonaws.com:/var/www/html/
 
-    - name: Restart Nginx
-      run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@ec2-54-91-61-10.compute-1.amazonaws.com 'sudo systemctl restart nginx'
+   
