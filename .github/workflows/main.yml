@@ -1,31 +1,31 @@
-name: Deploy to EC2
-
+name: AWS example workflow
 on:
   push:
-    branches:
-      - main  # Change this to your default branch
-
+    branches: [ "main" ]
+env:
+  BUCKET_NAME : "githubsample-645373"
+  AWS_REGION : "ap-south-1"
+# permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
 jobs:
-  deploy:
+  S3PackageUpload:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-
-
-    - name: Copy files to EC2
-      run: |
-        scp -o StrictHostKeyChecking=no -r * ubuntu@ec2-54-91-61-10.compute-1.amazonaws.com:/var/www/html/
-
-    - name: Set permissions for web files
-      run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@your-ec2-public-dns 'sudo chown -R www-data:www-data /var/www/html/ && sudo chmod -R 755 /var/www/html/'
-
-    - name: Restart Apache
-      run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@ec2-54-91-61-10.compute-1.amazonaws.com 'sudo systemctl restart apache2'
-
-
-   
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::666562444707:role/new_oidc_github
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.AWS_REGION }}
+      # Upload a file to AWS s3
+      - name:  Copy index.html to s3
+        run: |
+          aws s3 cp ./index.html s3://${{ env.BUCKET_NAME }}/
+         
+      - name:  s3 acl
+        run: |
+           aws s3api put-object-acl - bucket s3://${{ env.BUCKET_NAME }} - key OBJECT-KEY - acl public-read    
